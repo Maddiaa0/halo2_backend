@@ -227,7 +227,9 @@ impl OpcodeFlags {
                 Opcode::Directive(_) | Opcode::Brillig(_) => {
                     // Directives are only needed by the pwg
                 }
-                Opcode::Block(_) | Opcode::ROM(_) | Opcode::RAM(_) => {}
+                Opcode::MemoryInit{..} | Opcode::MemoryOp{..}  => {
+                    todo!()
+                }
             }
         }
 

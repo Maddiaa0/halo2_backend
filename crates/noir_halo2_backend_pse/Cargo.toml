@@ -32,6 +32,7 @@ pse_snark_verifier = { git = "https://github.com/privacy-scaling-explorations/sn
 toml = "0.7.5"
 base64 = "0.21.2"
 hex = "0.4.3"
+clap = { version = "4.4.14", features = ["derive"] }
 # pse_halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2.git", package = "halo2_proofs", tag = "v2023_04_20" }
 # pse_ecdsa = { git = "https://github.com/privacy-scaling-explorations/halo2wrong", package = "ecdsa", tag = "v2023_04_20", features = [
 #     "circuit-params",

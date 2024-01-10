@@ -4,13 +4,30 @@ use crate::{
 };
 use acvm::{
     acir::{circuit::Circuit, native_types::WitnessMap},
-    async_trait, CommonReferenceString,
 };
 use noir_halo2_backend_common::errors::BackendError;
 use pse_halo2wrong::curves::bn256::Fr;
 use std::marker::PhantomData;
 
-#[async_trait(?Send)]
+trait CommonReferenceString {
+    type Error;
+
+    /// Generate common reference string from
+    /// Aztec CRS ceremony
+    async fn generate_common_reference_string(
+        &self,
+        circuit: &Circuit,
+    ) -> Result<Vec<u8>, Self::Error>;
+
+    /// Update common reference string from
+    /// Aztec CRS ceremony
+    async fn update_common_reference_string(
+        &self,
+        common_reference_string: Vec<u8>,
+        circuit: &Circuit,
+    ) -> Result<Vec<u8>, Self::Error>;
+}
+
 impl CommonReferenceString for PseHalo2 {
     type Error = BackendError;
 

@@ -23,7 +23,8 @@ impl BlackBoxFunctionSolver for PseHalo2 {
 
     fn fixed_base_scalar_mul(
         &self,
-        _input: &FieldElement,
+        _low: &FieldElement,
+        _high: &FieldElement,
     ) -> Result<(FieldElement, FieldElement), BlackBoxResolutionError> {
         Err(BlackBoxResolutionError::Unsupported(acvm::acir::BlackBoxFunc::FixedBaseScalarMul))
     }

@@ -10,7 +10,7 @@ use acvm::{
         native_types::WitnessMap,
         BlackBoxFunc,
     },
-    FieldElement, Language, ProofSystemCompiler,
+    FieldElement, Language,
 };
 use noir_halo2_backend_common::{errors::BackendError, noir_field_to_halo2_field};
 use pse_halo2wrong::halo2::{
@@ -21,10 +21,67 @@ use pse_halo2wrong::halo2::{
 };
 use std::marker::PhantomData;
 
+trait ProofSystemCompiler {
+    type Error;
+
+    /// Get the size of the circuit
+    fn get_exact_circuit_size(&self, circuit: &NoirCircuit) -> Result<u32, Self::Error>;
+
+    /// Preprocess the circuit to get
+    /// Proving Key and Verifying Key
+    fn preprocess(
+        &self,
+        common_reference_string: &[u8],
+        circuit: &NoirCircuit,
+    ) -> Result<(Vec<u8>, Vec<u8>), Self::Error>;
+
+    /// Generate proof with Proving Key
+    fn prove_with_pk(
+        &self,
+        common_reference_string: &[u8],
+        circuit: &NoirCircuit,
+        witness_values: WitnessMap,
+        proving_key: &[u8],
+        is_recursive: bool,
+    ) -> Result<Vec<u8>, Self::Error>;
+
+    /// Verify proof with Verification Key
+    fn verify_with_vk(
+        &self,
+        common_reference_string: &[u8],
+        proof: &[u8],
+        public_inputs: WitnessMap,
+        circuit: &NoirCircuit,
+        verification_key: &[u8],
+        is_recursive: bool,
+    ) -> Result<bool, Self::Error>;
+
+    /// Type of constraint system
+    fn np_language(&self) -> Language;
+
+    /// Opcodes supported by the backend
+    fn supports_opcode(&self, opcode: &acvm::acir::circuit::Opcode) -> bool;
+
+    /// Convert proof to field elements
+    fn proof_as_fields(
+        &self,
+        proof: &[u8],
+        public_inputs: WitnessMap,
+    ) -> Result<Vec<FieldElement>, Self::Error>;
+
+    /// Convert verification key to field elements
+    fn vk_as_fields(
+        &self,
+        common_reference_string: &[u8],
+        verification_key: &[u8],
+    ) -> Result<(Vec<FieldElement>, FieldElement), Self::Error>;
+}
+
+
 impl ProofSystemCompiler for PseHalo2 {
     type Error = BackendError;
 
-    /// Get the size of the circuit
+    // Get the size of the circuit
     fn get_exact_circuit_size(&self, circuit: &NoirCircuit) -> Result<u32, BackendError> {
         let translator = NoirHalo2Translator::<Fr> {
             circuit: circuit.clone(),
@@ -157,7 +214,7 @@ impl ProofSystemCompiler for PseHalo2 {
                 | BlackBoxFunc::RecursiveAggregation
                 | BlackBoxFunc::SchnorrVerify => false,
             },
-            Opcode::Block(_) | Opcode::ROM(_) | Opcode::RAM(_) => false,
+            Opcode::MemoryInit{..} | Opcode::MemoryOp{..} => false,
         }
     }
 
